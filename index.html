@@ -670,7 +670,7 @@
               </div>
             </div>
 
-            <!-- Firebase Connection Panel -->
+             <!-- Firebase Connection Panel -->
             <div class="glass-panel">
               <h3
                 style="font-family:var(--font-title); margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
@@ -678,6 +678,9 @@
               <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">By default, the application runs
                 on a local mock database. Enter your Firebase Config JSON code below to link Firestore live collections.
               </p>
+              
+              <div id="settings-firebase-status" style="margin-bottom: 12px;"></div>
+
               <div class="form-group">
                 <label>Firebase Config JSON</label>
                 <textarea id="settings-firebase-config" class="form-control" rows="5"
@@ -1930,17 +1933,41 @@
     };
 
     window.appController.saveFirebaseConfig = function () {
-      const txt = document.getElementById('settings-firebase-config').value.trim();
+      let txt = document.getElementById('settings-firebase-config').value.trim();
       if (!txt) {
-        this.showToast('Empty config', 'Please paste valid JSON firebase configuration.', 'warning');
+        this.showToast('Empty config', 'Please paste a valid Firebase configuration object.', 'warning');
         return;
       }
+
+      // Strip JS variable declarations if present
+      if (txt.includes('const ') || txt.includes('var ') || txt.includes('let ') || txt.includes('firebaseConfig')) {
+        const startIndex = txt.indexOf('{');
+        const endIndex = txt.lastIndexOf('}');
+        if (startIndex !== -1 && endIndex !== -1) {
+          txt = txt.substring(startIndex, endIndex + 1);
+        }
+      }
+
       try {
+        // 1. Try strict JSON parse first
         const obj = JSON.parse(txt);
         FirebaseConfigManager.saveConfig(obj);
-        this.showToast('Connected', 'Firebase parameters linked. App is reloading...', 'success');
+        this.showToast('Firebase Linked', 'Configuration saved. Reloading app...', 'success');
+        return;
       } catch (e) {
-        this.showToast('JSON Parse Error', 'Firebase config must be valid JSON format.', 'danger');
+        // 2. Fallback: Parse loose JS object literal format
+        try {
+          const evaluated = Function(`"use strict"; return (${txt})`)();
+          if (evaluated && typeof evaluated === 'object' && evaluated.apiKey) {
+            FirebaseConfigManager.saveConfig(evaluated);
+            this.showToast('Firebase Linked', 'Loose configuration parsed. Reloading...', 'success');
+            return;
+          }
+        } catch (err) {
+          console.error('JS object evaluation failed:', err);
+        }
+        
+        this.showToast('Link Failed ❌', 'Could not parse format. Make sure you copy the complete { apiKey: ... } object.', 'danger');
       }
     };
 

@@ -498,6 +498,45 @@ class AppController {
         integrationsPanel.style.display = 'none';
       }
     }
+
+    // Load active Firebase config into textarea and render connection status badge
+    const fbTextarea = document.getElementById('settings-firebase-config');
+    const fbStatusContainer = document.getElementById('settings-firebase-status');
+    
+    if (fbTextarea) {
+      const activeConfig = FirebaseConfigManager.getConfig();
+      if (activeConfig) {
+        fbTextarea.value = JSON.stringify(activeConfig, null, 2);
+      } else {
+        fbTextarea.value = '';
+      }
+    }
+
+    if (fbStatusContainer) {
+      if (dbService.firebaseActive) {
+        const config = FirebaseConfigManager.getConfig() || {};
+        fbStatusContainer.innerHTML = `
+          <div class="status-pill success" style="display:inline-block; padding:6px 12px; font-weight:600; font-size:0.85rem; border-radius:6px; background:#10b981; color:#fff; margin-bottom:10px;">
+            🟢 Linked to Firestore (Project: ${config.projectId})
+          </div>
+        `;
+      } else if (dbService.connectionError) {
+        fbStatusContainer.innerHTML = `
+          <div class="status-pill danger" style="display:inline-block; padding:6px 12px; font-weight:600; font-size:0.85rem; border-radius:6px; background:#ef4444; color:#fff; margin-bottom:10px; line-height:1.3;">
+            🔴 Firebase Link Error: ${dbService.connectionError}
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">
+            ⚠️ <b>Why this happens:</b> Check your Firebase console. Your Security Rules may be blocking anonymous reads/writes, or your API keys have expired. Ensure Firestore is set to "Test Mode" or allows public access.
+          </div>
+        `;
+      } else {
+        fbStatusContainer.innerHTML = `
+          <div class="status-pill warning" style="display:inline-block; padding:6px 12px; font-weight:600; font-size:0.85rem; border-radius:6px; background:#f59e0b; color:#fff; margin-bottom:10px;">
+            ⚪ Offline local Database (Fallback Demo Mode)
+          </div>
+        `;
+      }
+    }
   }
 
   async renderSettingsUsersTable() {
