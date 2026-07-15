@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Ordering Menu</title>
+  
+  <!-- Material Icons & Google Fonts -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Custom Modular Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+  
+  <!-- Firebase SDKs Preloaded for Faster DB Init -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      background: #0f172a;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+      min-height: 100vh;
+    }
+    
+    .menu-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 90px;
+    }
+
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+
+    .category-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+    .category-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .category-chip {
+      white-space: nowrap;
+      padding: 10px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .category-chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .product-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      position: relative;
+    }
+
+    .product-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .product-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+    }
+
+    .product-price {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .qty-btn.minus {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+    }
+
+    .cart-bar {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      max-width: 768px;
+      margin: 0 auto;
+      height: 60px;
+      border-radius: 30px;
+      background: rgba(99, 102, 241, 0.95);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: #fff;
+      z-index: 1000;
+      display: none;
+    }
+
+    .cart-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-count {
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+
+    .cart-total {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .btn-view-cart {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      color: var(--primary);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 100%;
+      max-width: 450px;
+      background: #111827;
+      border-left: 1px solid var(--border-color);
+      box-shadow: -10px 0 40px rgba(0,0,0,0.5);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+    }
+
+    .cart-drawer.active {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .drawer-body {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .drawer-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.01);
+    }
+
+    .drawer-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .drawer-item-info {
+      flex-grow: 1;
+    }
+
+    .drawer-item-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .drawer-item-price {
+      font-size: 0.85rem;
+      color: var(--primary);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1500;
+      display: none;
+    }
+
+    .drawer-overlay.active {
+      display: block;
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <div class="menu-container">
+    
+    <!-- Table Select Screen -->
+    <div id="table-select-screen" class="glass-panel" style="max-width: 500px; margin: 40px auto; text-align: center; padding: 30px; display: none;">
+      <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 8px; color: var(--primary);">Welcome to our Restaurant!</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Please select your table number to view the menu and place orders.</p>
+      
+      <div class="form-group" style="margin-bottom: 20px; text-align: left;">
+        <label style="font-weight: 600; margin-bottom: 6px; display: block; font-size: 0.85rem;">Select Table</label>
+        <select id="select-table-id" class="form-control" style="cursor:pointer; font-size: 1rem; padding: 12px;">
+          <!-- Populated dynamically -->
+        </select>
+      </div>
+      
+      <button class="btn-primary clickable" style="width: 100%; padding: 14px; font-size: 1rem;" onclick="startOrdering()">
+        Browse Menu & Order
+      </button>
+    </div>
+
+    <!-- Main Ordering Screen -->
+    <div id="ordering-screen" style="display: none;">
+      
+      <!-- Customer Header -->
+      <div class="glass-panel menu-header">
+        <div>
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; margin: 0;">Table: <span id="active-table-name" style="color: var(--primary);">Table -</span></h2>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Self-Service Order</span>
+        </div>
+        <button class="btn-secondary clickable" id="btn-change-table" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">Change Table</button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <div style="position: relative;">
+          <i class="material-icons" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px;">search</i>
+          <input type="text" id="search-input" class="form-control" placeholder="Search dish name..." style="padding-left: 40px;">
+        </div>
+      </div>
+
+      <!-- Categories Scroll -->
+      <div class="category-scroll" id="categories-list">
+        <!-- chips populated dynamically -->
+      </div>
+      
+      <!-- Products Grid -->
+      <div class="products-grid" id="products-grid">
+        <!-- products populated dynamically -->
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Floating Cart Bar -->
+  <div class="cart-bar" id="cart-bar">
+    <div class="cart-info">
+      <span class="cart-count" id="cart-bar-count">0 items</span>
+      <span class="cart-total" id="cart-bar-total">$0.00</span>
+    </div>
+    <button class="btn-view-cart clickable" onclick="toggleCartDrawer(true)">
+      <i class="material-icons" style="font-size: 18px;">shopping_basket</i> View Cart
+    </button>
+  </div>
+
+  <!-- Drawer Overlay -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="toggleCartDrawer(false)"></div>
+
+  <!-- Cart Drawer -->
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="drawer-header">
+      <h3 style="font-family: 'Outfit', sans-serif; margin: 0; display:flex; align-items:center; gap:8px;">
+        <i class="material-icons" style="color:var(--primary);">shopping_cart</i> Confirm Order
+      </h3>
+      <button class="modal-close-btn clickable" style="font-size: 1.5rem; background:transparent; border:none; color:var(--text-color);" onclick="toggleCartDrawer(false)">&times;</button>
+    </div>
+    
+    <div class="drawer-body" id="cart-drawer-items">
+      <!-- Drawer items populated dynamically -->
+    </div>
+    
+    <div class="drawer-footer">
+      <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.15rem; margin-bottom: 16px;">
+        <span>Total Amount</span>
+        <span id="drawer-total-amount" style="color:var(--primary);">$0.00</span>
+      </div>
+      <button class="btn-primary clickable" style="width: 100%; padding: 14px; font-size: 1rem;" onclick="submitOrder()">
+        Send to Kitchen (Place Order)
+      </button>
+    </div>
+  </div>
+
+  <!-- Firebase scripts & setup module -->
+  <script type="module">
+    import dbService from './js/db.js';
+    import settingsController from './js/settings.js';
+
+    let activeTableId = '';
+    let activeTableName = '';
+    let cart = {}; 
+    let activeCategory = 'all';
+
+    window.onload = async () => {
+      // 1. Initialize DB Service
+      await dbService.init();
+      await settingsController.loadSettings();
+
+      // 2. Read URL Query Parameter "table"
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTableId = urlParams.get('table');
+
+      const tables = dbService.firebaseActive 
+        ? await dbService.getCollection('tables') 
+        : dbService.localDb.tables;
+
+      if (urlTableId) {
+        const found = tables.find(t => t.id === urlTableId);
+        if (found) {
+          activeTableId = found.id;
+          activeTableName = found.name;
+          document.getElementById('active-table-name').textContent = activeTableName;
+          showOrderingScreen();
+          return;
+        }
+      }
+
+      // If no valid URL parameter, show table selection screen
+      showTableSelectScreen(tables);
+    };
+
+    function showTableSelectScreen(tables) {
+      document.getElementById('table-select-screen').style.display = 'block';
+      document.getElementById('ordering-screen').style.display = 'none';
+
+      const select = document.getElementById('select-table-id');
+      const sorted = [...tables].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      select.innerHTML = sorted.map(t => `<option value="${t.id}">${t.name} (${t.floor})</option>`).join('');
+    }
+
+    window.startOrdering = async () => {
+      const select = document.getElementById('select-table-id');
+      const tableId = select.value;
+      if (!tableId) return;
+
+      const tables = dbService.firebaseActive 
+        ? await dbService.getCollection('tables') 
+        : dbService.localDb.tables;
+      const found = tables.find(t => t.id === tableId);
+      if (found) {
+        activeTableId = found.id;
+        activeTableName = found.name;
+        document.getElementById('active-table-name').textContent = activeTableName;
+        showOrderingScreen();
+      }
+    };
+
+    async function showOrderingScreen() {
+      document.getElementById('table-select-screen').style.display = 'none';
+      document.getElementById('ordering-screen').style.display = 'block';
+
+      const settings = settingsController.activeSettings || {};
+      if (settings.theme === 'light') {
+        document.body.classList.remove('theme-dark');
+        document.body.classList.add('theme-light');
+      } else {
+        document.body.classList.remove('theme-light');
+        document.body.classList.add('theme-dark');
+      }
+
+      await loadCategories();
+      await renderProducts();
+    }
+
+    document.getElementById('btn-change-table').addEventListener('click', async () => {
+      const tables = dbService.firebaseActive 
+        ? await dbService.getCollection('tables') 
+        : dbService.localDb.tables;
+      showTableSelectScreen(tables);
+      toggleCartDrawer(false);
+      cart = {};
+      updateCartBar();
+    });
+
+    async function loadCategories() {
+      const categories = dbService.firebaseActive 
+        ? await dbService.getCollection('categories') 
+        : dbService.localDb.categories;
+
+      const container = document.getElementById('categories-list');
+      container.innerHTML = `<button class="category-chip active clickable" data-cat-id="all">
+        <i class="material-icons" style="font-size:16px;">restaurant</i> All
+      </button>` + 
+      categories.map(c => `
+        <button class="category-chip clickable" data-cat-id="${c.id}">
+          <i class="material-icons" style="font-size:16px;">${c.icon || 'restaurant'}</i> ${c.name}
+        </button>
+      `).join('');
+
+      container.querySelectorAll('.category-chip').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const chip = e.target.closest('.category-chip');
+          container.querySelectorAll('.category-chip').forEach(b => b.classList.remove('active'));
+          chip.classList.add('active');
+          activeCategory = chip.getAttribute('data-cat-id');
+          renderProducts();
+        });
+      });
+    }
+
+    async function renderProducts() {
+      const products = dbService.firebaseActive 
+        ? await dbService.getCollection('products') 
+        : dbService.localDb.products;
+      const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+
+      const filtered = products.filter(p => {
+        const matchCat = (activeCategory === 'all' || p.categoryId === activeCategory);
+        const matchSearch = p.name.toLowerCase().includes(searchVal);
+        return matchCat && matchSearch;
+      });
+
+      const container = document.getElementById('products-grid');
+      const currency = getCurrencySymbol();
+
+      container.innerHTML = filtered.map(p => {
+        const cartItem = cart[p.id];
+        const qty = cartItem ? cartItem.qty : 0;
+        
+        return `
+          <div class="product-card">
+            <div class="product-name">${p.name}</div>
+            <div class="product-desc">${p.description || 'Freshly prepared house special.'}</div>
+            <div class="product-footer">
+              <span class="product-price">${currency}${parseFloat(p.price).toFixed(2)}</span>
+              <div class="qty-controls">
+                ${qty > 0 ? `
+                  <button class="qty-btn minus clickable" onclick="changeQty('${p.id}', -1)">-</button>
+                  <span style="font-weight:700; font-size:0.95rem; min-width:18px; text-align:center;">${qty}</span>
+                ` : ''}
+                <button class="qty-btn clickable" onclick="changeQty('${p.id}', 1)">+</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('search-input').addEventListener('input', renderProducts);
+
+    window.changeQty = async (productId, delta) => {
+      const products = dbService.firebaseActive 
+        ? await dbService.getCollection('products') 
+        : dbService.localDb.products;
+      const p = products.find(prod => prod.id === productId);
+      if (!p) return;
+
+      if (!cart[productId]) {
+        cart[productId] = { product: p, qty: 0 };
+      }
+
+      cart[productId].qty += delta;
+      if (cart[productId].qty <= 0) {
+        delete cart[productId];
+      }
+
+      renderProducts();
+      updateCartBar();
+      renderCartDrawer();
+    };
+
+    function updateCartBar() {
+      const items = Object.values(cart);
+      const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
+      const totalAmt = items.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
+      const currency = getCurrencySymbol();
+
+      const bar = document.getElementById('cart-bar');
+      if (totalQty > 0) {
+        bar.style.display = 'flex';
+        document.getElementById('cart-bar-count').textContent = `${totalQty} item${totalQty > 1 ? 's' : ''}`;
+        document.getElementById('cart-bar-total').textContent = `${currency}${totalAmt.toFixed(2)}`;
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    window.toggleCartDrawer = (show) => {
+      const drawer = document.getElementById('cart-drawer');
+      const overlay = document.getElementById('drawer-overlay');
+      if (show) {
+        drawer.classList.add('active');
+        overlay.classList.add('active');
+        renderCartDrawer();
+      } else {
+        drawer.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    };
+
+    function renderCartDrawer() {
+      const container = document.getElementById('cart-drawer-items');
+      const items = Object.values(cart);
+      const currency = getCurrencySymbol();
+      const totalAmt = items.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
+
+      document.getElementById('drawer-total-amount').textContent = `${currency}${totalAmt.toFixed(2)}`;
+
+      if (items.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px 0; color:var(--text-muted);">Your cart is empty</div>`;
+        return;
+      }
+
+      container.innerHTML = items.map(item => `
+        <div class="drawer-item">
+          <div class="drawer-item-info">
+            <div class="drawer-item-title">${item.product.name}</div>
+            <div class="drawer-item-price">${currency}${parseFloat(item.product.price).toFixed(2)}</div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn minus clickable" onclick="changeQty('${item.product.id}', -1)">-</button>
+            <span style="font-weight:700; font-size:0.95rem; min-width:18px; text-align:center;">${item.qty}</span>
+            <button class="qty-btn clickable" onclick="changeQty('${item.product.id}', 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.submitOrder = async () => {
+      const items = Object.values(cart);
+      if (items.length === 0) return;
+
+      const totalAmt = items.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
+
+      // Generate a KOT ticket number
+      const ticketId = 'kot_' + Date.now();
+      const kot = {
+        id: ticketId,
+        orderNum: 'ORD-' + Math.floor(100 + Math.random() * 900),
+        tableId: activeTableId,
+        tableName: activeTableName,
+        waiterId: 'self',
+        waiterName: 'Self-Order',
+        time: new Date().toLocaleTimeString(),
+        items: items.map(i => ({
+          id: i.product.id,
+          name: i.product.name,
+          qty: i.qty,
+          price: i.product.price,
+          notes: ''
+        })),
+        status: 'pending'
+      };
+
+      try {
+        // 1. Submit to kitchen order queue
+        await dbService.addDoc('kitchen', kot);
+
+        // 2. Set table status and outstanding amount
+        const tables = dbService.firebaseActive 
+          ? await dbService.getCollection('tables') 
+          : dbService.localDb.tables;
+        const tbl = tables.find(t => t.id === activeTableId);
+        
+        if (tbl) {
+          const currentBal = parseFloat(tbl.amount || 0);
+          await dbService.updateDoc('tables', activeTableId, {
+            status: 'occupied',
+            amount: currentBal + totalAmt,
+            orderId: kot.orderNum
+          });
+        }
+
+        alert('Order placed successfully! The kitchen is preparing your meal.');
+        
+        // Reset cart
+        cart = {};
+        updateCartBar();
+        toggleCartDrawer(false);
+        renderProducts();
+
+      } catch (err) {
+        console.error('Failed to submit guest self-order:', err);
+        alert('Could not submit order: ' + err.message);
+      }
+    };
+
+    function getCurrencySymbol() {
+      const settings = settingsController.activeSettings || {};
+      return settings.currencySymbol || '$';
+    }
+  </script>
+</body>
+</html>

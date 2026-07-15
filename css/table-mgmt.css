@@ -1,0 +1,210 @@
+/* Table Layout View */
+.table-mgmt-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: calc(100vh - 70px);
+  padding: 24px;
+  overflow: hidden;
+}
+
+/* Floor Navigation */
+.floors-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.floor-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.floor-tab {
+  padding: 10px 20px;
+  background: var(--bg-card);
+  border: var(--glass-border);
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.floor-tab.active {
+  background: var(--primary-glow);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.table-action-header-btns {
+  display: flex;
+  gap: 8px;
+}
+
+/* Tables Grid */
+.tables-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-auto-rows: 140px;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Individual Table Card */
+.table-card {
+  position: relative;
+  border-radius: 50%; /* circular by default */
+  border: 2px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--bg-card);
+}
+
+.table-card.square {
+  border-radius: 16px; /* rectangular shapes */
+}
+
+/* Neon Glow Statuses */
+.table-card.available {
+  border-color: var(--state-available);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+}
+.table-card.available:hover {
+  background: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+}
+
+.table-card.reserved {
+  border-color: var(--state-reserved);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+}
+.table-card.reserved:hover {
+  background: rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+}
+
+.table-card.occupied {
+  border-color: var(--state-occupied);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
+}
+.table-card.occupied:hover {
+  background: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.35);
+}
+
+.table-card.billing {
+  border-color: var(--state-billing);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+}
+.table-card.billing:hover {
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.35);
+}
+
+/* Info Badges inside Table */
+.table-number {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.table-capacity {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.table-amount {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.table-waiter {
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-main);
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-merge-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 12px;
+  color: var(--state-ready);
+}
+
+.table-qr-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Merge/Split/Transfer Selection Overlay Panel */
+.table-selection-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-top: 10px;
+  animation: slideUp 0.2s ease-out;
+}
+
+.table-selection-info {
+  font-weight: 600;
+}
+
+.table-selection-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Pending Guest Orders Map Highlights */
+.table-card.has-pending {
+  border: 2px dashed #f59e0b !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4) !important;
+  animation: pulse-orange 1.5s infinite alternate !important;
+}
+
+@keyframes pulse-orange {
+  0% {
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.6);
+  }
+}
+
+.table-pending-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #f59e0b;
+  color: #000;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+}

@@ -1,0 +1,223 @@
+/* Dashboard Grid & KPIs */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.kpi-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--primary-glow);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.kpi-icon.accent {
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+
+.kpi-icon.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--state-available);
+}
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi-title {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.kpi-trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kpi-trend.up { color: var(--state-available); }
+.kpi-trend.down { color: var(--state-occupied); }
+
+/* Dashboard Content Split Layout */
+.dashboard-split-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Charts and SVG Visualizations */
+.chart-container {
+  height: 250px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-top: 20px;
+  gap: 10px;
+}
+
+.chart-bar-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar {
+  width: 100%;
+  max-width: 32px;
+  background: linear-gradient(to top, var(--primary), #818cf8);
+  border-radius: 6px 6px 0 0;
+  transition: height 0.5s ease;
+  min-height: 5px;
+}
+
+.chart-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Tabular Lists */
+.data-table-container {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.data-table th {
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--border-color);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pill.success { background: rgba(16, 185, 129, 0.15); color: var(--state-available); }
+.status-pill.warning { background: rgba(245, 158, 11, 0.15); color: var(--state-reserved); }
+.status-pill.danger { background: rgba(239, 68, 68, 0.15); color: var(--state-occupied); }
+.status-pill.info { background: rgba(59, 130, 246, 0.15); color: var(--state-billing); }
+
+/* Report Filters Panel */
+.report-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.report-filters-bar select, .report-filters-bar input {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+/* Branch Grid Management card */
+.branch-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.branch-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.branch-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.branch-status-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.branch-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.branch-actions button {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.8rem;
+}
+
+/* Expense List tags */
+.expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.expense-amount {
+  font-weight: 700;
+  color: var(--accent);
+}

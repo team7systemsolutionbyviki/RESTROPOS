@@ -1,0 +1,13 @@
+{
+  "name": "restaurant-pos-billing-system",
+  "version": "1.0.0",
+  "description": "Enterprise Restaurant POS Billing and Table Management System",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "print-server": "node print-server.js"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

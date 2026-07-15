@@ -1,0 +1,417 @@
+/* POS Split View Layout */
+.pos-layout {
+  display: flex;
+  height: calc(100vh - 70px);
+  overflow: hidden;
+  gap: 16px;
+  padding: 16px;
+}
+
+/* Products & Categories Section (Left/Center) */
+.pos-menu-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.pos-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.pos-search-bar input {
+  flex: 1;
+}
+
+.barcode-scanner-btn {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: var(--glass-border);
+  padding: 10px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.barcode-scanner-btn.active {
+  background: var(--primary-glow);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Categories Slider */
+.categories-container {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+.category-chip {
+  padding: 8px 18px;
+  background: var(--bg-card);
+  border: var(--glass-border);
+  border-radius: 20px;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.category-chip.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 4px 10px var(--primary-glow);
+}
+
+/* Products Grid */
+.products-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-auto-rows: max-content;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  padding: 12px;
+  text-align: center;
+  height: 160px;
+  cursor: pointer;
+}
+
+.product-card img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin: 0 auto 8px auto;
+}
+
+.product-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.2;
+}
+
+.product-price {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+.product-stock-tag {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.product-stock-tag.low {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Cart Panel (Right) */
+.pos-cart-panel {
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-sidebar);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.cart-header {
+  padding: 16px;
+  border-bottom: var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cart-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cart-title-row h2 {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.cart-details-row {
+  display: flex;
+  gap: 10px;
+}
+
+.cart-details-row select, .cart-details-row button {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+/* Cart Items List */
+.cart-items-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cart-item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 12px;
+}
+
+.cart-item-title {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.cart-item-price {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--border-color);
+  color: var(--text-main);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-item-qty {
+  font-weight: 700;
+  font-size: 0.9rem;
+  width: 20px;
+  text-align: center;
+}
+
+.cart-item-total {
+  font-weight: 700;
+  font-size: 0.9rem;
+  width: 70px;
+  text-align: right;
+}
+
+.cart-item-delete {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  padding-left: 10px;
+}
+
+.cart-item-delete:hover {
+  color: var(--accent);
+}
+
+/* Cart Calculations Section */
+.cart-calculations {
+  padding: 16px;
+  border-top: var(--glass-border);
+  background: rgba(15, 23, 42, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calc-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.calc-row.grand-total {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  border-top: 1px dashed var(--border-color);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.cart-action-buttons {
+  padding: 16px;
+  border-top: var(--glass-border);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.cart-action-buttons button {
+  width: 100%;
+  padding: 10px 8px;
+  font-size: 0.8rem;
+}
+
+.cart-action-buttons .btn-checkout {
+  grid-column: span 3;
+  padding: 14px;
+  font-size: 1rem;
+}
+
+
+/* Print Receipt Template overlay */
+#receipt-print-area {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #receipt-print-area, #receipt-print-area * {
+    visibility: visible;
+  }
+  #receipt-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    display: block !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-family: monospace !important;
+    font-size: 12px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+.receipt-receipt-box {
+  width: 80mm; /* standard 3-inch thermal */
+  background: white;
+  color: black;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 10px;
+  margin: 0 auto;
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.receipt-logo {
+  max-width: 50px;
+  filter: grayscale(1);
+}
+
+.receipt-details {
+  border-bottom: 1px dashed #000;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.receipt-table th {
+  border-bottom: 1px dashed #000;
+  text-align: left;
+}
+
+.receipt-table td {
+  padding: 4px 0;
+}
+
+.receipt-totals {
+  border-top: 1px dashed #000;
+  padding-top: 8px;
+  font-size: 11px;
+}
+
+.receipt-qrcode-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.receipt-qrcode-container img {
+  width: 100px;
+  height: 100px;
+}
+
+/* Held/Resume Bill Bar */
+.held-bills-badge {
+  background: var(--state-reserved);
+  color: black;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .pos-layout {
+    flex-direction: column;
+  }
+  .pos-cart-panel {
+    width: 100%;
+    height: 400px;
+  }
+}
