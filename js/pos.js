@@ -16,6 +16,7 @@ class PosController {
     this.tipAmount = 0;
     this.splitPayments = []; // array of { method, amount }
     this.editingOrderId = null; // Track editing order
+    this.products = [];
   }
 
   init() {
@@ -128,7 +129,7 @@ class PosController {
 
   // Barcode scanner trigger
   barcodeScan(code) {
-    const products = dbService.firebaseActive ? [] : dbService.localDb.products;
+    const products = this.products || dbService.localDb.products || [];
     const match = products.find(p => p.barcode === code);
     if (match) {
       this.addToCart(match, 1);

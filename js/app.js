@@ -171,6 +171,17 @@ class AppController {
       });
     });
 
+    // Subscribe to products list
+    dbService.subscribe('products', (products) => {
+      this.products = products;
+      posController.products = products;
+      if (this.activeView === 'pos') {
+        const activeCat = document.querySelector('.category-chip.active');
+        const catId = activeCat ? activeCat.getAttribute('data-category-id') : 'all';
+        this.renderProductsGrid(catId);
+      }
+    });
+
     // Setup POS parameters
     posController.init();
 
@@ -273,6 +284,55 @@ class AppController {
       });
     }
 
+    // POS table selector change event
+    const posTableSelector = document.getElementById('pos-table-selector');
+    if (posTableSelector) {
+      posTableSelector.addEventListener('change', async (e) => {
+        const tableId = e.target.value;
+        const tables = dbService.firebaseActive 
+          ? await dbService.getCollection('tables') 
+          : dbService.localDb.tables;
+        const table = tables.find(t => t.id === tableId);
+        posController.selectedTable = table || null;
+
+        if (table) {
+          // 1. Check for pending guest self-orders
+          const pendingOrders = dbService.firebaseActive 
+            ? await dbService.getCollection('pending_orders') 
+            : dbService.localDb.pending_orders;
+          const tableOrder = pendingOrders.find(o => o.tableId === table.id && o.status === 'pending');
+          
+          if (tableOrder) {
+            const confirmLoad = confirm(`Table ${table.name} has a pending guest order of ${tableOrder.cart.length} items (${this.getCurrencySymbol()}${tableOrder.total.toFixed(2)}).\n\nDo you want to load this order into the cart?`);
+            if (confirmLoad) {
+              posController.cart = tableOrder.cart.map(item => ({
+                product: item.product,
+                qty: item.qty,
+                notes: ''
+              }));
+              
+              if (dbService.firebaseActive) {
+                await dbService.updateDoc('pending_orders', tableOrder.id, { status: 'approved' });
+              } else {
+                tableOrder.status = 'approved';
+                dbService.saveLocalDb();
+              }
+              this.showToast('Order Loaded', `Guest order for ${table.name} loaded into the cart.`, 'success');
+              posController.triggerCartUpdate();
+              return;
+            }
+          }
+
+          // 2. Load active running KOT bill items
+          const items = await this.loadActiveTableOrder(table.id);
+          posController.cart = items;
+        } else {
+          posController.cart = [];
+        }
+        posController.triggerCartUpdate();
+      });
+    }
+
     // POS Cart Events
     window.addEventListener('pos-cart-updated', () => {
       this.renderCartView();
@@ -333,7 +393,7 @@ class AppController {
       const card = e.target.closest('.product-card');
       if (card) {
         const productId = card.getAttribute('data-product-id');
-        const products = dbService.firebaseActive ? [] : dbService.localDb.products;
+        const products = this.products || dbService.localDb.products || [];
         const prod = products.find(p => p.id === productId);
         if (prod) {
           posController.addToCart(prod, 1);
@@ -443,9 +503,9 @@ class AppController {
     const toggle = document.getElementById('settings-multi-branch-toggle');
     
     if (container && toggle) {
+      toggle.checked = !!config.multiBranchEnabled;
       if (user && user.role === 'Super Master Admin') {
         container.style.display = 'block';
-        toggle.checked = !!config.multiBranchEnabled;
       } else {
         container.style.display = 'none';
       }
@@ -895,48 +955,7 @@ class AppController {
       tableSelector.innerHTML = `<option value="">Select Table</option>` + 
         sorted.map(t => `<option value="${t.id}">${t.name} (${t.floor})</option>`).join('');
       
-      // Bind event listener
-      tableSelector.addEventListener('change', async (e) => {
-        const tableId = e.target.value;
-        const table = tables.find(t => t.id === tableId);
-        posController.selectedTable = table || null;
 
-        if (table) {
-          // 1. Check for pending guest self-orders
-          const pendingOrders = dbService.firebaseActive 
-            ? await dbService.getCollection('pending_orders') 
-            : dbService.localDb.pending_orders;
-          const tableOrder = pendingOrders.find(o => o.tableId === table.id && o.status === 'pending');
-          
-          if (tableOrder) {
-            const confirmLoad = confirm(`Table ${table.name} has a pending guest order of ${tableOrder.cart.length} items (${this.getCurrencySymbol()}${tableOrder.total.toFixed(2)}).\n\nDo you want to load this order into the cart?`);
-            if (confirmLoad) {
-              posController.cart = tableOrder.cart.map(item => ({
-                product: item.product,
-                qty: item.qty,
-                notes: ''
-              }));
-              
-              if (dbService.firebaseActive) {
-                await dbService.updateDoc('pending_orders', tableOrder.id, { status: 'approved' });
-              } else {
-                tableOrder.status = 'approved';
-                dbService.saveLocalDb();
-              }
-              this.showToast('Order Loaded', `Guest order for ${table.name} loaded into the cart.`, 'success');
-              posController.triggerCartUpdate();
-              return;
-            }
-          }
-
-          // 2. Load active running KOT bill items
-          const items = await this.loadActiveTableOrder(table.id);
-          posController.cart = items;
-        } else {
-          posController.cart = [];
-        }
-        posController.triggerCartUpdate();
-      });
     }
 
     this.renderProductsGrid('all');
@@ -944,13 +963,22 @@ class AppController {
   }
 
   renderProductsGrid(categoryId) {
-    const products = dbService.firebaseActive ? [] : dbService.localDb.products;
+    const products = this.products || dbService.localDb.products || [];
     const grid = document.getElementById('pos-products-grid');
     if (!grid) return;
 
     let filtered = products;
     if (categoryId !== 'all') {
       filtered = products.filter(p => p.categoryId === categoryId);
+    }
+
+    const searchInput = document.getElementById('pos-search-input');
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    if (query) {
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        (p.barcode && p.barcode.toLowerCase().includes(query))
+      );
     }
 
     grid.innerHTML = filtered.map(p => {
@@ -965,6 +993,28 @@ class AppController {
         </div>
       `;
     }).join('');
+  }
+
+  handlePOSSearch(e) {
+    const activeCat = document.querySelector('.category-chip.active');
+    const catId = activeCat ? activeCat.getAttribute('data-category-id') : 'all';
+    
+    const searchInput = document.getElementById('pos-search-input');
+    const query = searchInput ? searchInput.value.trim() : '';
+
+    if (query) {
+      const products = this.products || dbService.localDb.products || [];
+      const match = products.find(p => p.barcode === query);
+      if (match) {
+        posController.addToCart(match, 1);
+        this.showToast('Barcode Scanned', `${match.name} added to cart`, 'success');
+        if (searchInput) searchInput.value = '';
+        this.renderProductsGrid(catId);
+        return;
+      }
+    }
+
+    this.renderProductsGrid(catId);
   }
 
   renderCartView() {

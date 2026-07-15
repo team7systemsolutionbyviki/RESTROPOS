@@ -284,7 +284,7 @@
             <div class="pos-search-bar glass-panel" style="padding:10px 16px; border-radius:12px;">
               <i class="material-icons" style="color:var(--text-muted);">search</i>
               <input type="text" id="pos-search-input" placeholder="Search product name or scan barcode..."
-                onkeyup="window.appController.initPOSPanel()"
+                onkeyup="window.appController.handlePOSSearch(event)"
                 style="background:transparent; border:none; color:white; flex:1; outline:none;">
               <button class="barcode-scanner-btn clickable" id="pos-barcode-toggle">
                 <i class="material-icons">qr_code_scanner</i>
@@ -1483,9 +1483,8 @@
       const servicePercent = parseFloat(document.getElementById('settings-resto-service-percent').value) || 0;
       const upiId = document.getElementById('settings-upi-id').value.trim();
       const printUpiQr = document.getElementById('settings-print-upi-qr').checked;
-      const multiBranchEnabled = document.getElementById('settings-multi-branch-toggle').checked;
-
-      await settingsController.saveGeneralSettings({
+      const user = authService.getCurrentUser();
+      const settingsPayload = {
         restaurantName: name,
         address,
         phone,
@@ -1500,10 +1499,15 @@
         gstEnabled,
         gstPercent,
         serviceChargePercent: servicePercent,
-        multiBranchEnabled,
         upiId,
         printUpiQr
-      });
+      };
+
+      if (user && user.role === 'Super Master Admin') {
+        settingsPayload.multiBranchEnabled = document.getElementById('settings-multi-branch-toggle').checked;
+      }
+
+      await settingsController.saveGeneralSettings(settingsPayload);
 
       // Update UPI preview after save
       window.appController.toggleUpiPreview();
